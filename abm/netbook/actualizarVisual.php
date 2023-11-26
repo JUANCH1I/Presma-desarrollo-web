@@ -6,7 +6,13 @@ try {
     $dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
     $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
-    $stmt = $pdo->query("
+    $carroID = $_POST["carroID"];
+
+
+
+
+
+    $sql = "
     SELECT 
     recurso.*, 
     IF(
@@ -29,15 +35,23 @@ LEFT JOIN registros
     )
 LEFT JOIN users 
     ON registros.idusuario = users.user_id 
+    left join tipo_recurso
+    ON recurso.recurso_tipo = tipo_recurso.tipo_recurso_id
+WHERE tipo_recurso.tipo_recurso_id = :carroID
 ORDER BY recurso.recurso_id
 
-");
+";
+    $stmt = $conexion->prepare($sql);
+    $stmt->bindParam(":carroID", $carroID, PDO::PARAM_INT);
+    $stmt->execute();
     $recursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    ob_clean(); // Limpia el búfer de salida
     header('Content-Type: application/json');
-    echo json_encode(['recursos' => $recursos]);
+    echo json_encode(['recursos' => $recursos, 'carroID' => $carroID]);
 } catch (Exception $e) {
     // Esto enviará una respuesta con un código de estado 500 y el mensaje de error
     http_response_code(500);
+    error_log('Error en actualizarVisual.php: ' . $e->getMessage());
     echo json_encode(['error' => $e->getMessage()]);
 }

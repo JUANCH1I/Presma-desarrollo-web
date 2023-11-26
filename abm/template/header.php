@@ -3,14 +3,90 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../netbook/style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+  <script src="visual.js"></script>
+  <script src="ajaxVisual.js"></script>
   <script src="script.js"></script>
+  <title>olimpiadas</title>
   <script>
+    function asignarEtiqueta() {
+        // Obtener el elemento select de etiquetas disponibles y asignadas
+        var etiquetasDisponibles = document.getElementById("etiquetasDisponibles");
+        var etiquetasAsignadas = document.getElementById("etiquetasAsignadas");
+
+        // Recorrer las opciones seleccionadas en etiquetas disponibles
+        for (var i = 0; i < etiquetasDisponibles.options.length; i++) {
+          var opcion = etiquetasDisponibles.options[i];
+          if (opcion.selected) {
+            // Clonar la opción y agregarla a etiquetas asignadas
+            var nuevaOpcion = opcion.cloneNode(true);
+            etiquetasAsignadas.appendChild(nuevaOpcion);
+
+            // Eliminar la opción de etiquetas disponibles
+            opcion.remove();
+            i--; // Ajustar el índice después de eliminar un elemento
+          }
+        }
+      }
+
+      function eliminarEtiqueta() {
+        // Obtener el elemento select de etiquetas disponibles y asignadas
+        var etiquetasDisponibles = document.getElementById("etiquetasDisponibles");
+        var etiquetasAsignadas = document.getElementById("etiquetasAsignadas");
+
+        // Recorrer las opciones seleccionadas en etiquetas asignadas
+        for (var i = 0; i < etiquetasAsignadas.options.length; i++) {
+          var opcion = etiquetasAsignadas.options[i];
+          if (opcion.selected) {
+            // Clonar la opción y agregarla a etiquetas disponibles
+            var nuevaOpcion = opcion.cloneNode(true);
+            etiquetasDisponibles.appendChild(nuevaOpcion);
+
+            // Eliminar la opción de etiquetas asignadas
+            opcion.remove();
+            i--; // Ajustar el índice después de eliminar un elemento
+          }
+        }
+      }
     $(document).ready(function() {
+      
+      $('#area').on('change', function() {
+        var areaID = $(this).val();
+        $('#carro').empty(); // Limpiar opciones anteriores
+
+        // Realizar una petición AJAX para obtener los carros de la zona seleccionada
+        $.ajax({
+          type: 'POST',
+          url: 'obtener_carros.php',
+          data: {
+            areaID: areaID
+          },
+          dataType: 'json',
+          success: function(data) {
+            $.each(data, function(key, value) {
+              $('#carro').append('<option value="' + key + '">' + value + '</option>');
+            });
+          }
+        });
+      });
+      $('#area').on('change', function() {
+        // Obtén el valor seleccionado
+        var seleccion = $(this).val();
+
+        // Muestra o oculta el segundo select según la opción seleccionada
+        if (seleccion === '0') {
+          $('#carro').hide();
+        } else {
+          $('#carro').show();
+        }
+      });
+
       if (window.location.href.indexOf("abm.php") > -1) {
         <?php if (!empty($notification)) { ?>
           $('#returnNotificationModal').modal('show');
@@ -189,6 +265,7 @@
           $('.user_link').off('click').on('click', function(e) {
             e.preventDefault();
             var userName = $(this).data('username');
+            console.log(userName.length);
             abrirModalConNombre(userName); // Llama a la función para abrir el modal con el nombre del usuario
           });
         };
@@ -205,6 +282,8 @@
       </tr>
     `;
         }
+
+
 
         let sourceModal = new EventSource('actualizarModal.php');
 
@@ -250,46 +329,48 @@
       };
     });
   </script>
-
-
-  <style>
-    .img>img {
-      margin-right: 5px;
-    }
-
-    footer {
-      width: 100%;
-      position: fixed;
-      bottom: 0;
-    }
-  </style>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="../template/logofinal.png" type="image/png">
-  <title>Presma</title>
 </head>
 
 <body>
-  <header class="p-3 bg-dark text-white">
-    <div class="container" bis_skin_checked="1">
-      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start" bis_skin_checked="1">
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-          <li><a href='../../index.php' class="nav-link px-2 text-secondary">Inicio</a></li>
-          <li><a href='../netbook/abm.php' class="nav-link px-2 text-white">Prestamos</a></li>
-          <?php
-          if (isset($_SESSION['user_rol'])) {
-            if ($_SESSION['user_rol'] == 5) {
-              echo '<li><a href="../abmPersonas/abmPersonas.php" class="nav-link px-2 text-white">Usuarios</a></li>';
-              echo '<li><a href="../netbook/qr.php" class="nav-link px-2 text-white">Recursos</a></li>';
-            }
-          } ?>
-          <li><a href="/Desarrollo-Web/index.php?logout" class="nav-link px-2 text-white">Cerrar sesion</a></li>
+  <nav class="sidebar locked">
+    <div class="logo_items flex">
+      <span class="nav_image">
+        <img src="../template/logofinal.png" alt="logo_img" />
+      </span>
+      <span class="logo_name">Presma</span>
+      <i class="bx bx-lock-alt" id="lock-icon" style="color:white" title="Unlock Sidebar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+          <path fill="white" d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10l.002 8H6v-8h12zm-9-2V7c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9z" />
+        </svg></i>
+      <i class="bx bx-x" id="sidebar-close"></i>
+    </div>
+    <div class="menu_container">
+      <div class="menu_items">
+        <ul class="menu_item">
+          <li class="item">
+            <a href="../netbook/visual.php" class="link flex">
+              <i class="fi fi-sr-computer"></i>
+              <span>Visual</span>
+            </a>
+          </li>
+          <li class="item">
+            <a href="../netbook/abm.php" class="link flex">
+              <i class="fi fi-ss-laptop"></i>
+              <span>Prestamos</span>
+            </a>
+          </li>
+          <li class="item">
+            <a href="../abmPersonas/abmPersonas.php" class="link flex">
+              <i class="fi fi-sr-user"></i>
+              <span>Usuarios</span>
+            </a>
+          </li>
         </ul>
-
-        <div class="text-end" bis_skin_checked="1">
-          <a href="#" class="btn btn-warning">
-            <?php echo $_SESSION['user_name']; ?>
-          </a>
+      </div>
+      <div class="sidebar_profile flex">
+        <div class="data_text">
+          <span class="name"><?php echo $_SESSION["user_name"] ?></span><a id="logout" href="/prueba d2/index.php?logout"><i id="logout" class="fi fi-rr-exit"></i></a>
         </div>
       </div>
     </div>
-  </header>
+  </nav>
+  <script src="../template/script.js"></script>

@@ -37,7 +37,7 @@ if (isset($_POST['submit'])) {
 }
 require_once("../db.php");
 $conexion = conexion();
-$statement = $conexion->prepare("SELECT * FROM tipo_recurso");
+$statement = $conexion->prepare("SELECT * FROM area");
 $statement->execute();
 $datos = $statement->fetchAll();
 ?>
@@ -75,18 +75,24 @@ if (isset($resultado)) {
           <input type="text" name="recurso_nombre" id="recurso_nombre" class="form-control" required>
         </div><br>
         <div class="form-group">
-          <label for="recurso_tipo">Material</label>
+          <label for="recurso_tipo">Area</label>
           <select name="recurso_tipo" id="recurso_tipo" class="input" required>
-          <option value="" disabled hidden selected >Elegir un material</option>
+          <option value="" disabled hidden selected >Elegi un area</option>
             <?php foreach ($datos as $dato) : ?>
-              <option value="<?= $dato['tipo_recurso_id'] ?>" class="input"><?= $dato['tipo_recurso_nombre'] ?></option>
+              <option value="<?= $dato['id'] ?>" class="input"><?= $dato['area_nombre'] ?></option>
             <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="recurso_tipo" style="display:none" >Carro</label>
+          <select name="recurso_tipo" id="recurso_tipo" class="input" style="display:none" required>
+          <option value="" id="" disabled hidden selected >Elegi un carro</option>
           </select>
         </div>
         <br>
         <div class="form-group">
           <input name="csrf" type="hidden" value="<?php echo escapar($_SESSION['csrf']); ?>">
-          <input type="submit" name="submit" class="btn btn-primary" value="Enviar">
+          <input type="submit" name="submit" class="btn btn-primary" value="Grabar">
           <a class="btn btn-primary" href="abm.php">Regresar al inicio</a>
         </div>
       </form>
@@ -94,4 +100,3 @@ if (isset($resultado)) {
   </div>
 </div>
 
-<?php include '../template/footer.php'; ?>

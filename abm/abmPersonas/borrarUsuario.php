@@ -55,4 +55,3 @@ if (isset($_POST['confirmar'])) {
   </div>
 </div>
 
-<?php require "../template/footer.php"; ?>

@@ -120,4 +120,3 @@ if ($error) {
 
 
 
-<?php include "../template/footer.php"; ?>

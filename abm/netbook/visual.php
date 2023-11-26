@@ -22,30 +22,43 @@ if (isset($_POST['submit']) && !hash_equals($_SESSION['csrf'], $_POST['csrf'])) 
 
 $error = false;
 $config = include('../db.php');
+$conexion = conexion();
+$areas = [];
+
+if ($conexion) {
+    $statement = $conexion->prepare("SELECT id, area_nombre FROM area");
+    $statement->execute();
+    $areas = $statement->fetchAll();
+} else {
+    echo "Error: No se pudo conectar a la base de datos.";
+}
 
 $stmt = $pdo->query("
 SELECT 
-recurso.*, 
-IF(
-    (registros.opcion = 'Accepted' AND registros.devuelto IN ('Denied', 'Pending')), 
-    'Ocupado', 
-    'Libre'
-) as recurso_estado, 
-IF(
-    (registros.opcion = 'Accepted' AND registros.devuelto IN ('Denied', 'Pending')), 
-    users.user_name, 
-    'N/A'
-) as user_name
+    recurso.*, 
+    IF(
+        (registros.opcion = 'Accepted' AND registros.devuelto IN ('Denied', 'Pending')), 
+        'Ocupado', 
+        'Libre'
+    ) as recurso_estado, 
+    IF(
+        (registros.opcion = 'Accepted' AND registros.devuelto IN ('Denied', 'Pending')), 
+        users.user_name, 
+        'N/A'
+    ) as user_name
 FROM recurso 
 LEFT JOIN registros 
-ON recurso.recurso_id = registros.idrecurso 
-AND registros.idregistro = (
-    SELECT MAX(idregistro) 
-    FROM registros AS r
-    WHERE r.idrecurso = recurso.recurso_id
-)
+    ON recurso.recurso_id = registros.idrecurso 
+    AND registros.idregistro = (
+        SELECT MAX(idregistro) 
+        FROM registros AS r
+        WHERE r.idrecurso = recurso.recurso_id
+    )
 LEFT JOIN users 
-ON registros.idusuario = users.user_id 
+    ON registros.idusuario = users.user_id 
+    left join tipo_recurso
+    ON recurso.recurso_tipo = tipo_recurso.tipo_recurso_id
+WHERE tipo_recurso.tipo_recurso_id = 1
 ORDER BY recurso.recurso_id
 ");
 
@@ -58,21 +71,19 @@ ORDER BY recurso.recurso_id
 
 <?php include "../template/header.php"; ?>
 
-<div class="colores">
-    <div>
-        <div id="c1"></div>
-        <p>Libre</p>
+
+
+<div style='display: flex; flex-wrap:wrap; justify-content:center; height: 50%; align-items:center; width:100%; flex-direction:column;'>
+    <div class="selects">
+        <select name="area" id="area">
+            <option value="" selected hidden disabled>Selecciona un area</option>
+            <?php foreach ($areas as $area) : ?>
+                <option value="<?= $area['id'] ?>" class="input"><?= $area['area_nombre'] ?></option>
+            <?php endforeach ?>
+        </select>
+        <select name="carro" id="carro" style="display: none;">
+        </select>
     </div>
-    <div>
-        <div id="c2"></div>
-        <p>En uso</p>
-    </div>
-    <div>
-        <div id="c3"></div>
-        <p>Mantenimiento</p>
-    </div>
-</div>
-<div style='display: flex; justify-content:center; height: 50%; align-items:center;'>
     <div id="netbookContainer" style='display: flex; flex-wrap: wrap; width: 500px;'>
         <?php
         while ($row = $stmt->fetch()) {
@@ -87,7 +98,7 @@ ORDER BY recurso.recurso_id
                     <p>{$row['recurso_nombre']}</p>
                   </div>";
         }
-        
+
         ?>
     </div>
     <div id='myModal' class='modal'>
@@ -97,5 +108,3 @@ ORDER BY recurso.recurso_id
         </div>
     </div>
 </div>
-
-<?php include "../template/footer.php"; ?>

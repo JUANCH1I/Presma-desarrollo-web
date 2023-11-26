@@ -35,12 +35,27 @@ if (isset($_POST['submit'])) {
     ];
 
     $consultaSQL = "UPDATE users SET
-        user_name = :nombre,
-        user_email = :email,
-        idRol = :rol
-        WHERE user_id = :id";
+            user_name = :nombre,
+            user_email = :email,
+            idRol = :rol
+            WHERE user_id = :id";
     $consulta = $conexion->prepare($consultaSQL);
     $consulta->execute($alumno);
+
+    // Limpiar las asignaciones anteriores
+    $limpiarAsignacionesSQL = "DELETE FROM AsignacionEtiquetas WHERE UsuarioID = :id";
+    $limpiarAsignaciones = $conexion->prepare($limpiarAsignacionesSQL);
+    $limpiarAsignaciones->execute(['id' => $_GET['id']]);
+
+    // Asignar nuevas etiquetas
+    if (isset($_POST['etiquetas']) && is_array($_POST['etiquetas'])) {
+      $insertarEtiquetasSQL = "INSERT INTO AsignacionEtiquetas (UsuarioID, EtiquetaID) VALUES (:id, :etiqueta)";
+      $insertarEtiquetas = $conexion->prepare($insertarEtiquetasSQL);
+
+      foreach ($_POST['etiquetas'] as $etiqueta) {
+        $insertarEtiquetas->execute(['id' => $_GET['id'], 'etiqueta' => $etiqueta]);
+      }
+    }
   } catch (PDOException $error) {
     $resultado['error'] = true;
     $resultado['mensaje'] = $error->getMessage();
@@ -63,10 +78,21 @@ try {
     $resultado['error'] = true;
     $resultado['mensaje'] = 'No se ha encontrado el alumno';
   }
+
+  // Obtener etiquetas asignadas al usuario
+  $etiquetasAsignadasSQL = "SELECT EtiquetaID FROM AsignacionEtiquetas WHERE UsuarioID = :id";
+  $etiquetasAsignadas = $conexion->prepare($etiquetasAsignadasSQL);
+  $etiquetasAsignadas->execute(['id' => $id]);
+  $etiquetasAsignadas = $etiquetasAsignadas->fetchAll(PDO::FETCH_COLUMN);
 } catch (PDOException $error) {
   $resultado['error'] = true;
   $resultado['mensaje'] = $error->getMessage();
 }
+
+
+// Obtener todas las etiquetas disponibles
+$etiquetasDisponiblesSQL = "SELECT * FROM Etiquetas";
+$etiquetasDisponibles = $conexion->query($etiquetasDisponiblesSQL)->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <?php require "../template/header.php"; ?>
@@ -125,21 +151,43 @@ if (isset($alumno) && $alumno) {
             <label for="rol">Rol</label>
             <select name="rol" id="rol" class="input">
               <?php foreach ($datos as $dato) : ?>
-                <option value="<?= $dato['idRol'] ?>" class="input"><?= $dato['rol_descripcion'] ?></option>
+                <option value="<?= $dato['idRol'] ?>" class="input" <?= ($alumno['idRol'] == $dato['idRol']) ? 'selected' : '' ?>>
+                  <?= $dato['rol_descripcion'] ?>
+                </option>
               <?php endforeach; ?>
             </select>
           </div>
+          
+
+          
           <div class="form-group">
             <input name="csrf" type="hidden" value="<?php echo escapar($_SESSION['csrf']); ?>">
             <input type="submit" name="submit" class="btn btn-primary" value="Actualizar">
             <a class="btn btn-primary" href="abmPersonas.php">Regresar</a>
           </div>
         </form>
+        <div>
+            <h2>Etiquetas asignadas</h2>
+            <select id="etiquetasAsignadas" multiple>
+              <!-- Etiquetas asignadas al alumno -->
+            </select>
+            <button onclick="eliminarEtiqueta()">Eliminar</button>
+          </div>
+          <div>
+            <h2>Etiquetas disponibles</h2>
+            <select id="etiquetasDisponibles" multiple>
+              <!-- Opciones de etiquetas disponibles -->
+              <option value="1">Computacion</option>
+              <option value="2">Biblioteca</option>
+              <option value="3">Taller</option>
+              <option value="4">Espacio digital</option>
+              <option value="5">Laboratorio Fisico-quimica</option>
+            </select>
+            <button onclick="asignarEtiqueta()">Guardar</button>
+          </div>
       </div>
     </div>
   </div>
 <?php
 }
 ?>
-
-<?php require "../template/footer.php"; ?>

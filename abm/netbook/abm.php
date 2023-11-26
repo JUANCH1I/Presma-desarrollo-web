@@ -51,7 +51,7 @@ $conexion = conexion();
 $statement = $conexion->prepare("SELECT id, DATE_FORMAT(horario, '%H:%i') AS horario FROM horario");
 $statement->execute();
 $datos = $statement->fetchAll();
-$titulo = isset($_POST['apellido']) ? 'Lista de prestamos (' . $_POST['apellido'] . ')' : 'Lista de alumnos';
+$titulo = isset($_POST['apellido']) ? 'Lista de prestamos (' . $_POST['apellido'] . ')' : 'Lista de prestamos';
 ?>
 
 
@@ -72,63 +72,64 @@ if ($error) {
 <?php
 }
 ?>
+<div class="center">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <a href="../../index.php" class="btn btn-primary mt-4">Volver al inicio</a>
+        <a href="agregarMaterial.php" class="btn btn-primary mt-4">Agregar material</a>
+        <a href="visual.php" class="btn btn-primary mt-4">Forma visual</a>
+        <a href="devuelto.php" class="btn btn-primary mt-4">Ver devueltos</a>
+        <hr>
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <a href="../../index.php" class="btn btn-primary mt-4">Volver al inicio</a>
-      <a href="agregarMaterial.php" class="btn btn-primary mt-4">Agregar material</a>
-      <a href="visual.php" class="btn btn-primary mt-4">Forma visual</a>
-      <a href="devuelto.php" class="btn btn-primary mt-4">Ver devueltos</a>
-      <hr>
-
-      <form method="post" class="form-inline">
-        <div class="form-group mr-3">
-          <input type="text" id="apellido" name="apellido" placeholder="Buscar" class="form-control">
-        </div>
-        <input name="csrf" type="hidden" value="<?php echo escapar($_SESSION['csrf']); ?>"><br>
-        <button type="submit" name="submit" class="btn btn-primary">Ver resultados</button>
-      </form>
+        <form method="post" class="form-inline">
+          <div class="form-group mr-3">
+            <input type="text" id="apellido" name="apellido" placeholder="Buscar" class="form-control">
+          </div>
+          <input name="csrf" type="hidden" value="<?php echo escapar($_SESSION['csrf']); ?>"><br>
+          <button type="submit" name="submit" class="btn btn-primary">Ver resultados</button>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <h2 class="mt-3">
-        <?= $titulo ?>
-      </h2>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Alumno</th>
-            <th>Inicio prestamo</th>
-            <th>Fin prestamo</th>
-            <th>Fechas extendidas</th>
-            <th>Material retirado</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoDeTabla">
-          <?php
-          if ($alumnos && $sentencia->rowCount() > 0) {
-            foreach ($alumnos as $fila) {
-          ?>
-              <tr>
-                <td><?php echo escapar($fila["idregistro"]); ?></td>
-                <td><a href="#" class="user_link" data-username="<?php echo escapar($fila["user_name"]); ?>"><?php echo escapar($fila["user_name"]); ?></a></td>
-                <td><?php echo escapar(($fila["inicio_prestamo"])); ?></td>
-                <td><?php echo escapar($fila["fin_prestamo"]); ?></td>
-                <td><?php echo escapar($fila["fechas_extendidas"]); ?></td>
-                <td><?php echo escapar($fila["recurso_nombre"]); ?></td>
-              </tr>
-          <?php
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2 class="mt-3">
+          <?= $titulo ?>
+        </h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Alumno</th>
+              <th>Inicio prestamo</th>
+              <th>Fin prestamo</th>
+              <th>Fechas extendidas</th>
+              <th>Material retirado</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoDeTabla">
+            <?php
+            if ($alumnos && $sentencia->rowCount() > 0) {
+              foreach ($alumnos as $fila) {
+            ?>
+                <tr>
+                  <td><?php echo escapar($fila["idregistro"]); ?></td>
+                  <td><a href="#" class="user_link" data-username="<?php echo escapar($fila["user_name"]); ?>"><?php echo escapar($fila["user_name"]); ?></a></td>
+                  <td><?php echo escapar(($fila["inicio_prestamo"])); ?></td>
+                  <td><?php echo escapar($fila["fin_prestamo"]); ?></td>
+                  <td><?php echo escapar($fila["fechas_extendidas"]); ?></td>
+                  <td><?php echo escapar($fila["recurso_nombre"]); ?></td>
+                </tr>
+            <?php
+              }
             }
-          }
-          ?>
-        <tbody>
-      </table>
+            ?>
+          <tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -210,7 +211,3 @@ if ($error) {
     </div>
   </div>
 </div>
-
-
-
-<?php include "../template/footer.php"; ?>
